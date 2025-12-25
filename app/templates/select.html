@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查询信息</title>
+    <style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+    h1{
+        font-size: 30px;
+        padding-top: 20px;
+    }
+    label,input{
+        font-size: 20px;
+       /* border-top: 20px;             padding-top: 20px;内边距*/
+        margin-top: 15px;/*外边距*/
+        width: 180px;   /*输入框长度*/
+        
+   }
+    button{         /*控制按钮位置大小及间距*/
+        font-size: 20px;
+        {#margin-left: 40px;#}
+        {#margin-right: -20px;#}
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+    }
+
+        
+</style>
+</head>
+<body>
+    <div>
+        <h1>考勤信息</h1>
+        {% if loginid %}
+            <form action="/select/" method="post">
+                {% csrf_token %}
+                <label style="margin-left: 100px; ">请根据学生学号进行查询:</label>
+                <input name="stuid" placeholder="请输入学生学号" required type="number">
+                <button type="submit">查询</button>
+            </form><br>
+        {% endif %}
+    </div>
+
+    <div>
+        <label style="color: red">
+            {% if err %}
+                {{ err }}
+            {% endif %}
+            {% if success %}
+                {{ success }}
+            {% endif %}<br>
+        </label>
+    </div>
+
+    <div>
+        <p><label>选课信息</label></p>
+        <table border="1" align="center"style="border-collapse: collapse; width: 1000px">
+            <tr>
+                <th id="id">学号</th>
+                <th>姓名</th>
+                <th>课程</th>
+                <th>课程时间</th>
+                <th>课程开设日期</th>
+            </tr>
+
+            {% for course in courses %}
+                <tr>
+                    <td id="id">  {{ course.stuid__stuid }}  </td>
+                    <td>  {{ course.stuid__stuname }}  </td>
+                    <td>  {{ course.courseid__coursename }}  </td>
+                    <td>  {{ course.courseid__starttime }} ~ {{ course.courseid__endtime }} </td>
+                    <td>{{ course.courseid__weekday }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <p><label>考勤信息</label></p>
+        <table border="1" align="center"style="border-collapse: collapse; width: 1000px">
+            <tr>
+                <th>编号</th>
+                <th>课程</th>
+                <th>考勤时间</th>
+                <th>状态</th>
+            </tr>
+
+            {% for req in stureq %}
+                <tr>
+                    <td id="id">  {{ req.id }}  </td>
+                    <td>  {{ req.courseid__coursename }}  </td>
+                    <td>  {{ req.starttime }} ~ {{ req.endtime }}  </td>
+                    <td>
+                        {% if req.state %}
+                            <label style="font-size:20px;background-color: green;color: white;border-radius:5px 5px 5px 5px;">已打卡</label>
+                        {% elif req.able %}
+                            <label style="font-size:20px;background-color: red;border-radius:5px 5px 5px 5px;border:1px solid black">未打卡</label>
+                        {% else %}
+                            <label style="font-size:20px;background-color: grey;border-radius:5px 5px 5px 5px;">已过期</label>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div>
+    <p>
+        <a href="/welcome">
+            <button>回到主菜单</button>
+        </a>
+    </p>
+    </div>
+</body>
+<script>
+</script>
+</html>

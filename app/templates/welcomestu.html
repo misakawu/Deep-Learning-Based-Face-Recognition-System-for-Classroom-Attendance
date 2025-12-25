@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>welcome</title>
+    <style>
+        body{
+            background: pink;
+        }
+        div{
+            text-align: center;
+        }
+        h1{
+            font-size: 40px;
+            color: blue;
+            text-align: center;
+        }
+        h2{
+            font-size: 30px;
+            color: blue;
+            text-align: center;
+        }
+        button {
+            width: 300px;
+            height: 45px;
+            font-size: 20px;
+            color: brown;/*字体颜色*/
+            border-color: blue;/*边框颜色*/
+            border-radius: 20px;/*圆角矩形*/
+        }
+
+    </style>
+</head>
+<body>
+<div style="position:absolute;left: 50px;text-align: left;">
+    <p><label>当前用户信息：</label></p>
+        {% if info %}
+    <p><label>学生姓名：{{ info.stuname }}</label></p>
+    <p><label>学生学号：{{ info.stuid }}</label></p>
+        {% else %}
+    <p><label style="color: red">未验证学生信息<br>请进入个人信息页面验证</label></p>
+        {% endif %}
+</div>
+<h1>欢迎进入学生打卡系统</h1>
+<h2>学生子系统</h2>
+
+<div>
+    <a href="/personal">
+        <button type="submit">个人信息</button><br><br>
+    </a>
+
+   <!-- <a href="/attend">
+        <button type="submit">考勤打卡</button><br><br>
+    </a>-->
+
+    <a href="/course">
+        <button type="submit">查看所有课程</button><br><br>
+    </a>
+
+    <a href="/takecourse">
+        <button type="submit">选课</button><br><br>
+    </a>
+
+    <a href="/select">
+        <button type="submit">查询自身考勤</button><br><br>
+    </a>
+
+    <a href="/login">
+        <button type="button" style="background-color: red;color: gold; width: 100px">退出登录</button><br><br>
+    </a>
+
+</div>
+</body>
+</html>

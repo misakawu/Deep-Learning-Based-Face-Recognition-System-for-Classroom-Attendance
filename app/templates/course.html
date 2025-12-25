@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>课程信息</title>
+<style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+     #addcourse {
+        width: 100%;
+        max-width: 1000px;
+        margin:  auto; /* 居中显示 */
+        padding: 20px;
+        text-align: center; /* 文本居中 */
+    }
+     #addcourse p {
+        margin-bottom: 10px;
+        font-size: 20px;
+    }
+     #addcourse label{
+        display: inline-block; /* 并排显示 */
+        margin-bottom: 10px; /* 底部间距 */
+    }
+     #addcourse input[type="text"],
+     #addcourse input[type="time"],
+     #addcourse input[type="number"]{
+        display: inline-block; /* 并排显示 */
+        margin-bottom: 10px; /* 底部间距 */
+        width: 100px;
+        margin-right: 10px; /* 右边距 */
+        padding: 8px; /* 内边距 */
+        border: 1px solid #ccc; /* 边框 */
+        border-radius: 4px; /* 圆角 */
+    }
+     #addcourse select{
+        display: inline-block; /* 并排显示 */
+        margin-bottom: 10px; /* 底部间距 */
+        width: 120px;
+        margin-right: 10px; /* 右边距 */
+        padding: 8px; /* 内边距 */
+        border: 1px solid #ccc; /* 边框 */
+        border-radius: 4px; /* 圆角 */
+     }
+     button{         /*控制按钮位置大小及间距*/
+        font-size: 25px;
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+        margin: auto;
+    }
+</style>
+</head>
+<body>
+<h1>课程信息</h1>
+    {% if manager %}
+        <div id="addcourse">
+            <p>添加课程信息</p>
+            <form id="CourseInfo" action="/course/" method="post">
+                {% csrf_token %}
+                 <label>课程名</label> <input type="text" name="coursename" required autofocus>
+                 <label>上课时间</label> <input type="time" name="starttime" required autofocus>
+                 <label>下课时间</label> <input type="time" name="endtime" required autofocus>
+                 <label>开课日期</label> <input type="number" name="weekday" required autofocus min="1" max="7">
+            </form>
+
+             <button type="button" id="sub">提交</button> <br>
+
+
+            <label style="color: red">
+                <p id="err">
+                    {% if err %}
+                        {{ err }}
+                    {% endif %}
+                </p>
+                <p id="succ">
+                    {% if succ %}
+                        {{ succ }}
+                    {% endif %}
+                </p>
+
+            </label>
+        </div>
+    {% endif %}
+
+    <table border="1" align="center"style="border-collapse: collapse; width: 1000px">
+        <tr>
+            <th id="id">课程编号</th>
+            <th>课程名</th>
+            <th>上课时间</th>
+            <th>下课时间</th>
+            <th>开课日期</th>
+                {% if manager %}
+            <th>&nbsp</th>
+                {% endif %}
+        </tr>
+
+            {% for course in courses %}
+        <tr>
+        <td id="id">  {{ course.id }}  </td>
+        <td>  {{ course.coursename }}  </td>
+        <td>  {{ course.starttime }}  </td>
+        <td>  {{ course.endtime }}  </td>
+        <td>  {{ course.weekday }}  </td>
+                {% if manager %}
+            <td align="center"><input onclick="del({{ course.id }})" style="color: red" type="button" value="删除"/></td>
+                {% endif %}
+        </tr>
+            {% endfor %}
+    </table>
+
+
+     <p>
+       <button style="font-size: 20px;">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+   </p>
+<div id="allmap"></div>
+</body>
+<script>
+    var addSubmitted= false;
+    document.getElementById('sub').addEventListener('click', function(event) {
+        event.preventDefault();
+        if(addSubmitted===true)
+            return;
+
+        const coursename=document.getElementsByName('coursename')[0].value;
+        const starttime=document.getElementsByName('starttime')[0].value;
+        const endtime=document.getElementsByName('endtime')[0].value;
+        const weekday=document.getElementsByName('weekday')[0].value;
+        if (starttime===''||endtime===''||coursename===''||weekday==='')
+        {
+            console.log(coursename,starttime,endtime,weekday);
+            return;
+        }
+        if (starttime>=endtime)
+        {
+            alert("课程时间不合法");
+            return;
+        }
+
+        document.getElementById('CourseInfo').submit();
+        addSubmitted = true;
+    })
+
+    var delSubmitted = false;
+
+    function del(id) {
+        // 获取当前按钮的data-id属性，即course.id
+        var courseId = id;
+        // 发送POST请求
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/course/delete'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function (){
+            if (Http.status >= 200 && Http.status < 300){
+                window.location.replace("http://127.0.0.1:8080/course/");
+            }else{
+                document.getElementById('err').innerText=Http.response['err'];
+            }
+        }
+        if(!delSubmitted) {
+            Http.send(JSON.stringify({'id': courseId}))
+            delSubmitted=true;
+        }
+    }
+
+
+</script>
+</html>

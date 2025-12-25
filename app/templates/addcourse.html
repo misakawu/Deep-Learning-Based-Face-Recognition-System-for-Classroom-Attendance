@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加选课信息</title>
+
+<style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+    h1{
+        font-size: 30px;
+        padding-top: 30px;
+    }
+    label,input{
+        font-size: 20px;
+       /* border-top: 20px;             padding-top: 20px;内边距*/
+        margin-top: 15px;/*外边距*/
+        width: 180px;   /*输入框长度*/
+   }
+    button{         /*控制按钮位置大小及间距*/
+        font-size: 25px;
+        margin-left: 60px;
+        margin-right: -20px;
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+    }
+    img{
+        margin-left: 60px;
+        margin-right: -20px;
+        color: darkgrey;
+    }
+
+</style>
+</head>
+<body>
+    <h1>请在下列信息栏填入选课信息</h1>
+    <div>
+        <form id="StuInfo" action="/add/" method="post">
+            {% csrf_token %}
+            <label>学生学号:</label>
+            <input  type="number" name="id"required autofocus><br>
+            <label>学生姓名:</label>
+            <input type="text" name="stuname"required autofocus id="name"><br>
+            <label>课程名称:</label>
+            <input type="text" name="stuaddress"required autofocus><br>
+        </form><br>
+        <p style="font-size: 20px; color: red; padding-left: 60px">
+                {% if err %}
+                    {{ err }}
+                {% endif %}
+        </p>
+        <p style="padding-left: 90px;font-size: 20px">
+                {% if success %}
+                    {{ success }}
+                {% endif %}
+        </p>
+    </div>
+
+    <div>
+    <button type="reset" form="StuInfo">清空</button>
+    <button type="submit" form="StuInfo">提交</button><br><br>
+    </div>
+
+    <p>
+       <button style="font-size: 20px">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+    </p>
+</body>
+
+<script>
+</script>
+</html>

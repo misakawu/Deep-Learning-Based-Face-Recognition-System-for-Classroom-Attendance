@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查询信息</title>
+    <style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+    h1{
+        font-size: 30px;
+        padding-top: 20px;
+    }
+    label,input{
+        font-size: 20px;
+       /* border-top: 20px;             padding-top: 20px;内边距*/
+        margin-top: 15px;/*外边距*/
+        width: 180px;   /*输入框长度*/
+   }
+    button{         /*控制按钮位置大小及间距*/
+        font-size: 20px;
+        color: deepskyblue;
+    }
+
+        
+</style>
+</head>
+<body>
+    {% if notlink %}
+        <h1 style="margin-top: -20px">未验证学生信息</h1>
+        <button onclick="facelink()">验证学生人脸信息</button>
+        <div>
+            <p><label style="font-size: 20px; color: red;" id="err"></label></p>
+        </div>
+    {% else %}
+        <h1 style="margin-top: -20px">个人信息</h1>
+        <h2>学生信息</h2>
+        <div>
+            <p><label>学生姓名：{{ info.stuname }}</label></p>
+            <p><label>学生学号：{{ info.stuid }}</label></p>
+        </div>
+
+        <div>
+            <p><label>选课信息</label></p>
+            <table border="1" align="center"style="border-collapse: collapse; width: 600px">
+                <tr>
+                    <th>课程id</th>
+                    <th>课程名称</th>
+                    <th>课程时间</th>
+                    <th>课程开设日期</th>
+                </tr>
+
+                {% for course in courses %}
+                    <tr>
+                        <td>  {{ course.courseid__id }}  </td>
+                        <td>  {{ course.courseid__coursename }}  </td>
+                        <td>  {{ course.courseid__starttime }} ~ {{ course.courseid__endtime }} </td>
+                        <td>{{ course.courseid__weekday }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+
+    <div>
+    <p>
+        <a href="/welcome">
+            <button>回到主菜单</button>
+        </a>
+    </p>
+    </div>
+</body>
+<script>
+    function facelink(){
+        var Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/personal/'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function () {
+            const data=JSON.parse(Http.response);
+            if (Http.status >= 200 && Http.status < 300) {
+                if(data.err)
+                {
+                    document.getElementById('err').innerText=data.err
+                    return;
+                }
+                location.reload();
+            } else {
+
+                document.getElementById('err').innerText="网络错误"
+                alert(Http.response)
+            }
+        }
+        Http.send()
+    }
+</script>
+</html>

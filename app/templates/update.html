@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>更新、删除信息</title>
+    <style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+    h1{
+        font-size: 30px;
+        padding-top: 30px;
+    }
+    #update label,
+    #update input{
+        font-size: 20px;
+        margin-top: 15px;/*外边距*/
+        width: 180px;   /*输入框长度*/
+    }
+    button{         /*控制按钮位置大小及间距*/
+        font-size: 25px;
+        margin-left: 40px;
+        {#margin-right: -30px;#}
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+        margin-top: 10px;
+    }
+
+</style>
+</head>
+<body>
+    <h1>以学生编号为基准修改学生信息</h1>
+
+    <div id="update">
+        <form id="StuInfo" action="/update/"method="post">
+            {% csrf_token %}
+            <label>编号:</label>
+            <input type="number" name="id" placeholder="请输入学生编号" ><br>
+            <label>姓名:</label>
+            <input name="stuname" placeholder="请输入学生姓名"><br>
+            <label>学号:</label>
+            <input type="number" name="stuid" placeholder="请输入学生学号"><br>
+        </form>
+        <button form="StuInfo" type="submit" style="font-size: 20px">更新信息</button><br>
+        <label>使用摄像头更新人脸数据:</label><button style="font-size: 20px" onclick="updatecamera()">打开摄像头</button><br>
+        <label>使用本地文件更新人脸数据:</label><button style="font-size: 20px" onclick="updatelocal()">打开文件</button><br>
+    </div>
+    <div>
+        <p id="succ" style="font-size: 25px; color: green; margin-left: 40px;">
+                {% if success %}
+            {{ success }}
+                {% endif %}
+        </p>
+        <p id="err" style="font-size: 25px; color: red; margin-left: 40px;">
+                {% if err %}
+            {{ err }}
+                {% endif %}
+        </p>
+    </div>
+
+   <p>
+       <button style="font-size: 20px">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+   </p>
+
+
+    <h2>所有学生信息一览</h2>
+    <div>
+        <p><label style="margin-left: 705px;font-size: 15px;">按学生姓名搜索：</label>
+        <input type="text" id="namekey" placeholder="请输入学生姓名" onblur="filteByName()"></p>
+    </div>
+    <table id="stuinfo" border="1" align="center"style="border-collapse: collapse; width: 1000px">
+        <tr>
+            <th>学生编号</th>
+            <th>学生姓名</th>
+            <th>学生学号</th>
+            <th>&nbsp;</th>
+            </tr>
+
+            {% for s in info %}
+            <tr>
+                <td>  {{ s.id }}  </td>
+                <td>  {{ s.stuname }}  </td>
+                <td>  {{ s.stuid }}  </td>
+                <td align="center"><input onclick="del({{ s.stuid }})" style="color: red" type="button" value="删除"/></td>
+            </tr>
+            {% endfor %}
+
+    </table> <br>
+</body>
+
+<script>
+    var able_for_next = true;
+    function updatelocal(){
+        if(able_for_next) {
+            able_for_next=false;
+            const id = document.getElementsByName('id')[0].value;
+            if (id === undefined) {
+                alert('请输入学生编号')
+                return
+            }
+            sendHttp(JSON.stringify({'id': id, 'local': true}))
+        }
+    }
+    function updatecamera(){
+        if (able_for_next){
+            able_for_next=false;
+            const id = document.getElementsByName('id')[0].value;
+            if (id===undefined) {
+                alert('请输入学生编号')
+                return
+            }
+            sendHttp(JSON.stringify({'id': id,'local':false}))
+        }
+
+    }
+
+    function sendHttp(data) {
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/update/face'
+        Http.open("POSt",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function () {
+            const data=JSON.parse(Http.response);
+            able_for_next=true;
+            if (Http.status >= 200 && Http.status < 300) {
+                if (data.succ) {
+                    console.log(data);
+                    document.getElementById('succ').innerText = data.succ;
+
+                }else{
+                    document.getElementById('succ').innerText = '';
+                    document.getElementById('err').innerText = data.err;
+                }
+            } else {
+                document.getElementById('err').innerText = '网络错误';
+            }
+        }
+
+        Http.send(data);
+    }
+
+    var delSubmitted=false;
+    function del(id) {
+        // 获取当前按钮的data-id属性，即course.id
+        var stuid = id;
+        // 发送POST请求
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/delete/'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function (){
+            if (Http.status >= 200 && Http.status < 300){
+                window.location.replace("http://127.0.0.1:8080/update/");
+            }else{
+                document.getElementById('err').innerText=Http.response['err'];
+            }
+        }
+        if(!delSubmitted) {
+            Http.send(JSON.stringify({'stuid': stuid}))
+            delSubmitted=true;
+        }
+    }
+
+    function filteByName(){
+    const key = document.getElementById('namekey').value;
+    var table = document.getElementById('stuinfo')
+    const cnt = table.rows.length;
+    for (let i=1; i<=cnt; i++) {
+        var row=table.rows[i];
+        var name=row.getElementsByTagName("TD")[1].innerText.toLowerCase();
+        if(! name.includes(key))
+            row.style.display='none';
+        else
+            row.style.display='';
+    }
+    }
+</script>
+</html>

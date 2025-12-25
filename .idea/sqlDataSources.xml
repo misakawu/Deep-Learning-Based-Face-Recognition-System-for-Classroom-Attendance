@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DdlMappings">
+    <mapping uuid="694e90a5-492c-4ff4-b6e2-9bc48ddbb0a9" name="faceFeature Mapping">
+      <data-sources db="b09a944a-99b4-46ac-a6ef-8906d32a0239" ddl="f8f33032-39a9-4953-9da0-92adc1a2e850" />
+    </mapping>
+  </component>
+</project>

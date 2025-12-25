@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>welcome</title>
+<style>
+    body{
+        text-align: center;
+        background: lightblue;
+    }
+    h1{
+        font-size: 30px;
+        padding-top: 30px;
+    }
+     button{         /*控制按钮位置大小及间距*/
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+        margin: auto;
+    }
+</style>
+</head>
+<body>
+    <div>
+        <p><label>已选课程</label></p>
+        <table border="1"align="center"style="border-collapse: collapse; width: 1000px">
+            <tr>
+                <th id="id">课程编号</th>
+                <th>课程名</th>
+                <th>上课时间</th>
+                <th>下课时间</th>
+                <th>开课日期</th>
+                <th>&nbsp;</th>
+            </tr>
+
+                {% for course in selcourse %}
+            <tr>
+            <td id="id">  {{ course.courseid_id }}  </td>
+            <td>  {{ course.courseid__coursename }}  </td>
+            <td>  {{ course.courseid__starttime }}  </td>
+            <td>  {{ course.courseid__endtime }}  </td>
+            <td>  {{ course.courseid__weekday }}  </td>
+            <td align="center">
+                <input onclick="deltake({{ course.courseid_id }})" style="color: red" type="button" value="取消选课"/>
+            </td>
+            </tr>
+                {% endfor %}
+        </table>
+    </div>
+    <div>
+        <p><label>全部课程</label></p>
+        <table id="courses-table" border="1"align="center"style="border-collapse: collapse; width: 1000px">
+            <tr>
+                <th onclick="sortTable(0)">
+                    <label id="all-up">↑</label>
+                    <label id="all-down" hidden="hidden">↓</label>
+                    课程编号
+                </th>
+                <th>课程名</th>
+                <th>上课时间</th>
+                <th>下课时间</th>
+                <th>开课日期</th>
+                <th>&nbsp;</th>
+            </tr>
+
+                {% for course in blockcourse %}
+            <tr>
+                <td>  {{ course.id }}  </td>
+                <td>  {{ course.coursename }}  </td>
+                <td>  {{ course.starttime }}  </td>
+                <td>  {{ course.endtime }}  </td>
+                <td>  {{ course.weekday }}  </td>
+                <td align="center">
+                        <input onclick="deltake({{ course.id }})" style="color: red" type="button" value="取消选课"/>
+                </td>
+            </tr>
+                {% endfor %}
+                {% for course in restcourse %}
+            <tr>
+                <td>  {{ course.id }}  </td>
+                <td>  {{ course.coursename }}  </td>
+                <td>  {{ course.starttime }}  </td>
+                <td>  {{ course.endtime }}  </td>
+                <td>  {{ course.weekday }}  </td>
+                <td align="center">
+                        <input onclick="takecourse({{ course.id }})" style="color: deepskyblue" type="button" value="选课"/>
+                </td>
+            </tr>
+                {% endfor %}
+        </table>
+    </div>
+
+    <p>
+       <button style="font-size: 20px">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+    </p>
+
+</body>
+<script type="text/javascript">
+    function takecourse(id){
+            // 获取当前按钮的data-id属性，即course.id
+            var courseId = id
+            // 发送POST请求
+            const Http = new XMLHttpRequest();
+            const url = 'http://127.0.0.1:8080/takecourse/'
+            Http.open("POST", url, true);
+            Http.setRequestHeader('Content-Type', 'application/json');
+            const csrfToken = "{{ csrf_token }}";
+            Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+            Http.onload = function () {
+                if (Http.status >= 200 && Http.status < 300) {
+                    const data=JSON.parse(Http.response);
+                    if (data.err)
+                        alert(data.err);
+                    else
+                        location.reload();
+                } else {
+                    alert(JSON.parse(Http.response).err)
+                }
+            }
+
+            Http.send(JSON.stringify({'courseid': courseId}))
+        }
+
+    function deltake(id){
+            const delid=id;
+            // 发送POST请求
+            const Http = new XMLHttpRequest();
+            const url = 'http://127.0.0.1:8080/takecourse/delete'
+            Http.open("POST", url, true);
+            Http.setRequestHeader('Content-Type', 'application/json');
+            const csrfToken = "{{ csrf_token }}";
+            Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+            Http.onload = function () {
+                if (Http.status >= 200 && Http.status < 300) {
+                    const data=JSON.parse(Http.response);
+                    if (data.err)
+                        alert(data.err);
+                    else
+                        location.reload();
+                } else {
+                    alert(JSON.parse(Http.response).err)
+                }
+            }
+            Http.send(JSON.stringify({'delid': delid}))
+        }
+
+    function sortTable(n) {
+        var uplable = document.getElementById("all-up");
+        var downlable = document.getElementById("all-down");
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("courses-table");
+
+        switching = true;
+        dir = "asc";
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir === "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir === "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount++;
+            } else {
+                if (switchcount === 0 && dir === "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+        if (dir==="asc") {
+            uplable.hidden=true;
+            downlable.hidden=false;
+        }else {
+            uplable.hidden=false;
+            downlable.hidden=true;
+        }
+    }
+</script>
+</html>

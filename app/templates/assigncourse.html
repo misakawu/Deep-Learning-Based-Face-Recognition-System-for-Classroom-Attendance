@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>课程信息</title>
+<style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+     button{         /*控制按钮位置大小及间距*/
+        font-size: 25px;
+        color: deepskyblue;
+        margin: auto;
+    }
+    .bar{
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+     .bar-content {
+        width: 900px;
+        background-color: #fefefe;
+        margin: 50px auto 0;
+        padding: 20px;
+        border: 1px solid #888;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        animation: modal-show 0.3s;
+    }
+     .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,0,0,0);
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,0,0,0);
+    }
+    .add-one {
+        color: #aaa;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,0,0,0);
+    }
+    .add-one:hover,
+    .add-one:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,0,0,0);
+    }
+</style>
+</head>
+<body>
+<h1>课程信息</h1>
+    <h1>分配课程</h1>
+    <div>
+        <p id="err" style=" color: red;font-size: 25px;">
+        </p>
+    </div>
+    <table border="1" align="center"style="border-collapse: collapse; width: 1000px">
+        <tr>
+            <th id="id">课程编号</th>
+            <th>课程名</th>
+            <th>上课时间</th>
+            <th>下课时间</th>
+            <th>开课日期</th>
+        </tr>
+
+            {% for course in allcourses %}
+        <tr>
+        <td id="id">  {{ course.id }}  </td>
+        <td>  {{ course.coursename }}  </td>
+        <td>  {{ course.starttime }}  </td>
+        <td>  {{ course.endtime }}  </td>
+        <td>  {{ course.weekday }}  </td>
+        <td align="center">
+            <input onclick="showmore({{ course.id }})" style="color: black" type="button" value="分配"/>
+        </td>
+        </tr>
+            {% endfor %}
+    </table>
+
+     <p>
+       <button style="font-size: 20px;">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+     </p>
+
+    <div id="select-bar" class="bar" style="display: none">
+        <input type="number" id="data-courseid" style="display: none"/>
+
+        <div class="bar-content">
+            <span class="close">&times;</span>
+            <label style="font-size: 25px">分配选课的学生</label>
+            <div>搜索框
+                <input type="text" id="search-stu" placeholder="请输入学生姓名或学号" style="width: 200px;height: 30px;margin-left: 10px;"/>
+                <button onclick="searchstu()" style="font-size: 15px;color: black;">搜索</button>
+            </div>
+            <br>
+            <div id="choose-stu" style="float:left;">
+                {% for stu in allstu %}
+                    <div style="float:left;padding:0 5px;margin-left:0;width:200px">
+                        <input type="checkbox" name="stuselete" style="margin-bottom:5px;" value="{{ stu.id }}"/>
+                        <label name="stuinfo">{{ stu.stuid }} - {{ stu.stuname }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <br>
+            <button onclick="assigncourse()" style="font-size: 20px;margin-right: 20px;color: black">确认</button>
+        </div>
+    </div>
+
+</body>
+
+<script>
+    const stutable = document.getElementById('stutable');
+    const bar = document.getElementById('select-bar');
+    function showmore(id) {
+        bar.style.display='block';
+        document.getElementById('data-courseid').value=id;
+        const checkboxes = document.getElementsByName('stuselete');
+        document.getElementById('search-stu').value='';
+        for(let i=0;i<checkboxes.length;i++) {
+            checkboxes[i].checked = false;
+            checkboxes[i].parentNode.style.display='block';
+        }
+    }
+
+    var able_for_next = true;
+    function assigncourse(){
+        if(!able_for_next)
+            return;
+        able_for_next=false;
+        const courseid = document.getElementById('data-courseid').value;
+        let lables = document.getElementsByName('stuselete');
+        console.log(lables)
+        let stulist=[]
+        for(let i=0;i<lables.length;i++)
+            stulist.push(lables[i].value)
+        sendhttp(courseid,stulist)
+        bar.style.display='none';
+    }
+
+    function sendhttp(courseid,stulist){
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/takecourse/assign'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function (){
+            const data=JSON.parse(Http.responseText);
+            if (Http.status >= 200 && Http.status < 300){
+                if(data['succ'])
+                    window.location.replace("http://127.0.0.1:8080/takecourse/assign");
+                else
+                    document.getElementById('err').innerText=data['err'];
+            }else{
+                document.getElementById('err').innerText="网络错误"
+            }
+        }
+        Http.send(JSON.stringify({'courseid': courseid, 'stulist': stulist}))
+    }
+
+    document.querySelector('.close').addEventListener('click', function () {
+        bar.style.display = 'none';
+    });
+
+    function searchstu() {
+        const search_text = document.getElementById('search-stu').value;
+        // 对name="stuinfo"的innertext筛选，含有search_text的显示，否则隐藏
+        const stus = document.getElementsByName('stuinfo');
+        for(let i=0;i<stus.length;i++){
+            console.log(stus[i].innerText.toLowerCase(),stus[i].innerText.toLowerCase().includes(search_text))
+            if(stus[i].innerText.toLowerCase().includes(search_text))
+                stus[i].parentNode.style.display='block';
+            else
+                stus[i].parentNode.style.display='none';
+        }
+    }
+</script>
+</html>

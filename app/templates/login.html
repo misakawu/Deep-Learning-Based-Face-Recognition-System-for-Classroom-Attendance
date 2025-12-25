@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>登录</title>
+<style>
+    input,button{
+        width: 320px;
+        height: 45px;
+        margin: 0px auto;
+        border-radius: 10px;
+        text-indent: 10px; /*里面隐形的字体首行缩进*/
+        margin: 10px auto;
+    }
+    body{
+        margin: 0px;
+        padding: 0px;
+        height: 180px;
+        background-image: url(/static/1.jpg);   /*背景图片*/
+        background-size:100% 100%;   /*图片自由伸缩*/
+    }
+</style>
+
+</head>
+<body background="/static/1.jpg" style="background-size: cover">
+<div  style="text-align: center; margin-top: 60px">
+<form action="/login/" method="post" class="form-signin" id="loginform">
+    {% csrf_token %}
+    <h1 style="color: white; font-size: 60px">欢迎登录本系统</h1><br><br><br>
+    <label style="color: white; font-size: 20px">账号：&nbsp</label>
+    <input name="username"  type="text" style="width: 150px;height: 25px" placeholder="账号"required autofocus><br><br>
+    <label style="color: white; font-size: 20px">密码：&nbsp</label>
+    <input name="password" type="password" style="width: 150px;height: 25px"  placeholder="密码"required><br><br>
+    <input type="hidden" name="type" id="requestType" value="">
+    <div style="padding-left: 70px">
+        <button type="submit"style="width: 70px;height: 30px;font-size: 15px;text-indent: 0px;color: blue" id="login">登录</button><p></p>
+        <button type="submit"style="width: 70px;height: 30px;font-size: 15px;text-indent: 0px;color: red" id="register">注册</button>
+    </div>
+    <p style="color: brown; padding-left: 70px">{{msg}}</p>
+</form>
+
+</div>
+
+</body>
+<script>
+    var form=document.getElementById('loginform');
+    document.getElementById('login').addEventListener('click', function(event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+        var requestTypeInput = document.getElementById('requestType');
+        requestTypeInput.value='login';
+        {#alert(requestTypeInput.value);#}
+        form.submit();
+    });
+    document.getElementById('register').addEventListener('click', function(event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+        var requestTypeInput = document.getElementById('requestType');
+        requestTypeInput.value='register';
+        {#alert(requestTypeInput.value);#}
+        form.submit();
+    });
+</script>
+
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>课程信息</title>
+<style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+     #startcourse {
+        width: 100%;
+        max-width: 1000px;
+        margin:  auto; /* 居中显示 */
+        padding: 20px;
+        text-align: center; /* 文本居中 */
+    }
+     #startcourse p {
+        margin-bottom: 10px;
+        font-size: 20px;
+    }
+     #startcourse label{
+        display: inline-block; /* 并排显示 */
+        margin-bottom: 10px; /* 底部间距 */
+    }
+     #startcourse input[type="text"],
+     #startcourse input[type="time"],
+     #startcourse input[type="number"],
+     #startcourse select{
+        display: inline-block; /* 并排显示 */
+        margin-bottom: 10px; /* 底部间距 */
+        width: 100px;
+        margin-right: 10px; /* 右边距 */
+        padding: 8px; /* 内边距 */
+        border: 1px solid #ccc; /* 边框 */
+        border-radius: 4px; /* 圆角 */
+    }
+     button{         /*控制按钮位置大小及间距*/
+        font-size: 25px;
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+        margin: auto;
+    }
+     .bar{
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+     .bar-content {
+        width: 600px;
+        background-color: #fefefe;
+        margin: 50px auto 0;
+        padding: 20px;
+        border: 1px solid #888;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        animation: modal-show 0.3s;
+    }
+     .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,0,0,0);
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255,0,0,0);
+    }
+</style>
+</head>
+<body>
+    <h1>课程考勤</h1>
+    <div id="startcourse">
+        <p>设置课程考勤信息</p>
+        <form id="AttendInfo" action="/course/start" method="post">
+            {% csrf_token %}
+            <label>选择课程</label>
+            <select name="courseid" required autofocus>
+                {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.id }} - {{ course.coursename }}</option>
+                {% endfor %}
+            </select>
+            <label>考勤持续时间(分钟)</label> <input type="number" max="10" min="1"  name="duration" required autofocus>
+            <label>预约考勤时间</label>
+            <select name="thisweek" required autofocus>
+                <option value="true">本周</option>
+                <option value="false">下周</option>
+            </select>
+        </form>
+
+         <button type="button" id="sub">提交</button> <br>
+
+        <div style="color: red;font-size: 20px">
+            <p>
+                <div id="err">
+                    {% if err %}
+                        {{ err }}
+                    {% endif %}
+                </div>
+            </p>
+            <p>
+                <div id="succ">
+                    {% if succ %}
+                        {{ succ }}
+                    {% endif %}
+                </div>
+           </p>
+        </div>
+    </div>
+
+    <h2>历史考勤<label style="font-size: 15px;">(按考勤时间排序)</label></h2>
+    <table border="1" align="center"style="border-collapse: collapse; width: 1000px;">
+        <tr>
+            <th onclick="sortTable(0)">
+                编号
+                <label id="id-up" hidden="hidden">↑</label>
+                <label id="id-down" hidden="hidden">↓</label>
+            </th>
+            <th>课程名</th>
+            <th>考勤时间</th>
+            <th>查看考勤</th>
+            <th>开始打卡</th>
+        </tr>
+            {% for history in histories %}
+        <tr>
+        <td>  {{ history.id }}  </td>
+        <td>  {{ history.courseid__coursename }}  </td>
+        <td>  {{ history.starttime }} ~ {{ history.endtime }}  </td>
+        <td>
+            <button onclick="showhistory({{ history.id }})" style="font-size: 15px;">查看</button>
+        </td>
+        <td>
+            <button onclick="attend({{ history.id }})" style="font-size: 15px;color: black">打卡</button>
+        </td>
+        </tr>
+            {% endfor %}
+    </table>
+
+    <div id="info-bar" class="bar" style="display: none">
+        <br>
+        <div class="bar-content">
+            <span class="close">&times;</span>
+            <table id="bartable" border="1" align="center"style="border-collapse: collapse; width: 500px">
+                <tr>
+                    <th>编号</th>
+                    <th>课程名</th>
+                    <th>学生名</th>
+                    <th>考勤时间</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+     <p>
+       <button style="font-size: 20px;">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+     </p>
+
+</body>
+<script>
+    var addSubmitted= false;
+    document.getElementById('sub').addEventListener('click', function(event) {
+        event.preventDefault();
+        if(addSubmitted===true)
+            return;
+
+        const courseid=document.getElementsByName('courseid')[0].value;
+        const duration=document.getElementsByName('duration')[0].value;
+        const thisweek=document.getElementsByName('thisweek')[0].value;
+        if (courseid===''||duration===''||thisweek==='')
+        {
+            console.log(courseid,duration);
+            alert("请输入全部考勤信息");
+            return;
+        }
+
+        document.getElementById('AttendInfo').submit();
+        addSubmitted = true;
+    })
+
+    var ableForNext = true;
+    function attend(reqid){
+        if (!ableForNext) {
+            alert('请勿重复点击');
+            return;
+        }
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/attend/'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function (){
+            const data = JSON.parse(Http.response)
+            const succlable=document.getElementById('succ');
+            const errlable=document.getElementById('err');
+            if (Http.status >= 200 && Http.status < 300){
+                if (data.succ){
+                    succlable.innerText=data.succ;
+                    errlable.innerText='';
+                }else{
+                    errlable.innerText=data.err;
+                    succlable.innerText='';
+                }
+            }else{
+                succlable.innerText='';
+                errlable.innerText='网络错误';
+            }
+        }
+        Http.send(JSON.stringify({'reqid': reqid}))
+    }
+
+    function showhistory(requestid) {
+        document.getElementById('info-bar').style.display='block'
+        // 创建一个新的 XMLHttpRequest 对象
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/course/log'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        // 定义请求完成时的回调函数
+        Http.onload = function () {
+            const data = JSON.parse(Http.response);
+            if (Http.status >= 200 && Http.status < 300) {
+                if(data.succ){
+                    var barTable = document.getElementById('bartable');
+                    while(barTable.rows.length > 1)
+                        barTable.deleteRow(-1);
+
+                    for (let i in data['logs']) {
+                        let newrow = barTable.insertRow();
+                        let rowid = newrow.insertCell();
+                        let rowcourse = newrow.insertCell();
+                        let rowstu = newrow.insertCell();
+                        let rowtime = newrow.insertCell();
+                        rowid.innerText = data['logs'][i].id;
+                        rowcourse.innerText = data['logs'][i].requestid__courseid__coursename;
+                        rowstu.innerText = data['logs'][i].stuid__stuname;
+                        let time = data['logs'][i].attendtime
+                        time = time.replace('T',' ')
+                        time = time.replace('Z','')
+                        rowtime.innerText = time;
+                    }
+                    // 显示弹窗
+                    document.getElementById('info-bar').style.display = 'block';
+                }else{
+                    document.getElementById('err').innerText=Http.response['err'];
+                }
+            } else {
+                // 请求失败，处理错误
+                document.getElementById('err').innerText=Http.statusText;
+                console.error('请求失败:', Http.statusText);
+            }
+        };
+
+        Http.send(JSON.stringify({'requestid': requestid}));
+    }
+
+    // 监听关闭按钮的点击事件
+    document.querySelector('.close').addEventListener('click', function () {
+        // 隐藏弹窗
+        document.getElementById('info-bar').style.display = 'none';
+    });
+
+    // 监听点击弹窗外部区域关闭弹窗
+    document.getElementById('info-bar').addEventListener('click', function (event) {
+        if (event.target === this) {
+            // 如果点击的是弹窗外部，则隐藏弹窗
+            this.style.display = 'none';
+        }
+    });
+
+
+    function sortTable(n) {
+        var uplable = document.getElementById("id-up");
+        var downlable = document.getElementById("id-down");
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("courses-table");
+
+        switching = true;
+        dir = "asc";
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir === "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir === "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount++;
+            } else {
+                if (switchcount === 0 && dir === "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+        if (dir==="asc") {
+            uplable.hidden=true;
+            downlable.hidden=false;
+        }else {
+            uplable.hidden=false;
+            downlable.hidden=true;
+        }
+    }
+</script>
+</html>

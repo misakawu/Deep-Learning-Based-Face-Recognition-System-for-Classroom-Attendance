@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>更新、删除信息</title>
+    <style>
+    body{
+        background: lightblue;
+        text-align: center;
+    }
+    h1{
+        font-size: 30px;
+        padding-top: 30px;
+    }
+    #update label,
+    #update input{
+        font-size: 20px;
+        margin-top: 15px;/*外边距*/
+        width: 180px;   /*输入框长度*/
+    }
+    button{         /*控制按钮位置大小及间距*/
+        font-size: 25px;
+        margin-left: 40px;
+        {#margin-right: -30px;#}
+        /*border-radius: 10px;*/
+        color: deepskyblue;
+        margin-top: 10px;
+    }
+
+</style>
+</head>
+<body>
+    <h1>以用户编号为基准修改用户信息</h1>
+
+    <div id="update">
+        <form id="UserInfo" action="/usermanage/"method="post">
+            {% csrf_token %}
+            <label>编号:</label>
+            <input type="number" name="userid" placeholder="请输入用户编号" ><br>
+            <label>用户名:</label>
+            <input name="username" placeholder="请输入用户名"><br>
+            <label>密码:</label>
+            <input type="number" name="pwd" placeholder="请输入用户密码"><br>
+            <label>链接学生:</label>
+            <select name="linkstu" >
+                {% for s in stu %}
+                <option value="{{ s.stuid }}">{{ s.stuid }} - {{ s.stuname }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <button form="UserInfo" type="submit" style="font-size: 20px">更新信息</button><br>
+    </div>
+    <div>
+        <p id="succ" style="font-size: 25px; color: green; margin-left: 40px;">
+                {% if succ %}
+            {{ succ }}
+                {% endif %}
+        </p>
+        <p id="err" style="font-size: 25px; color: red; margin-left: 40px;">
+                {% if err %}
+            {{ err }}
+                {% endif %}
+        </p>
+    </div>
+
+   <p>
+       <button style="font-size: 20px">
+       <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+       </button>
+   </p>
+
+
+    <h2>所有用户信息一览</h2>
+    <div>
+        <p><label style="margin-left: 705px;font-size: 15px;">按用户名搜索：</label>
+        <input type="text" id="namekey" placeholder="请输入用户名" onblur="filteByName()"></p>
+    </div>
+    <table id="userinfo" border="1" align="center"style="border-collapse: collapse; width: 1000px">
+        <tr>
+            <th>用户编号</th>
+            <th>用户名</th>
+            <th>用户密码</th>
+            <th>链接学生</th>
+            <th>&nbsp;</th>
+            </tr>
+            {% if alluser %}
+                {% for s in alluser %}
+                <tr>
+                    <td>  {{ s.Userid }}  </td>
+                    <td>  {{ s.username }}  </td>
+                    <td>  {{ s.password }}  </td>
+                    <!---TODO:修改变量名----->
+                    <td> 未链接 </td>
+                    <td align="center"><input onclick="del({{ s.Userid }})" style="color: red" type="button" value="删除"/></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                {% for s in linked %}
+                <tr>
+                    <td>  {{ s.userid__UserId }}  </td>
+                    <td>  {{ s.userid__username }}  </td>
+                    <td>  {{ s.userid__password }}  </td>
+                    <!---TODO:修改变量名----->
+                    <td> {{ s.stuid__stuid }}-{{ s.stuid__stuname }}</td>
+                    <td align="center"><input onclick="del({{ s.userid__UserId }})" style="color: red" type="button" value="删除"/></td>
+                </tr>
+                {% endfor %}
+                {% for s in notlinked %}
+                <tr>
+                    <td>  {{ s.UserId }}  </td>
+                    <td>  {{ s.username }}  </td>
+                    <td>  {{ s.password }}  </td>
+                    <td> 未链接 </td>
+                    <td align="center"><input onclick="del({{ s.UserId }})" style="color: red" type="button" value="删除"/></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+
+
+    </table> <br>
+</body>
+
+<script>
+    var delSubmitted=false;
+    function del(id) {
+        // 获取当前按钮的data-id属性，即course.id
+        const userid = id;
+        // 发送POST请求
+        const Http=new XMLHttpRequest();
+        const url='http://127.0.0.1:8080/usermanage/delete/'
+        Http.open("POST",url,true);
+        Http.setRequestHeader('Content-Type', 'application/json');
+        const csrfToken = "{{ csrf_token }}";
+        Http.setRequestHeader("X-CSRFToken", csrfToken);
+
+        Http.onload=function (){
+            const date = JSON.parse(Http.responseText);
+            if (Http.status >= 200 && Http.status < 300){
+                if(date['succ'])
+                    window.location.replace("http://127.0.0.1:8080/usermanage/");
+                else
+                    document.getElementById('err').innerText=date['err'];
+            }else{
+                document.getElementById('succ').innerText='';
+                document.getElementById('err').innerText=date['err'];
+            }
+            delSubmitted=false;
+        }
+        if(!delSubmitted) {
+            Http.send(JSON.stringify({'userid': userid}))
+            delSubmitted=true;
+        }
+    }
+
+    function filteByName(){
+        const key = document.getElementById('namekey').value;
+        var table = document.getElementById('userinfo')
+        const cnt = table.rows.length;
+        for (let i=1; i<=cnt; i++) {
+            var row=table.rows[i];
+            var name=row.getElementsByTagName("TD")[1].innerText.toLowerCase();
+            if(! name.includes(key))
+                row.style.display='none';
+            else
+                row.style.display='';
+        }
+    }
+</script>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>所有信息</title>
+    <style>
+        body{
+            background: lightblue;
+            text-align: center;
+        }
+        label{
+            align: center;
+            font-size: 30px;
+        }
+        button{         /*控制按钮位置大小及间距*/
+            font-size: 25px;
+            margin:auto;
+            color: deepskyblue;
+        }
+    </style>
+</head>
+<body>
+<h1>所有学生信息一览</h1>
+<div>
+    <p><label style="margin-left: 705px;font-size: 15px;">按学生姓名搜索：</label>
+    <input type="text" id="namekey" placeholder="请输入学生姓名" onblur="filteByName()"></p>
+</div>
+<table id="stuinfo" border="1" align="center"style="border-collapse: collapse; width: 1000px">
+    <tr>
+        <th id="id">编号</th>
+        <th>学生姓名</th>
+        <th>学生学号</th>
+    </tr>
+    {% for s in info %}
+        <tr>
+            <td id="id">  {{ s.id }}  </td>
+            <td>  {{ s.stuname }}  </td>
+            <td>  {{ s.stuid }}  </td>
+        </tr>
+    {% endfor %}
+</table>
+<p>
+   <button style="font-size: 20px">
+   <a href="/welcome/" style="text-decoration: none;">返回主页面</a>
+   </button>
+</p>
+</body>
+<script>
+    function filteByName(){
+        const key = document.getElementById('namekey').value;
+        var table = document.getElementById('stuinfo')
+        const cnt = table.rows.length;
+        for (let i=1; i<=cnt; i++) {
+            var row=table.rows[i];
+            var name=row.getElementsByTagName("TD")[1].innerText.toLowerCase();
+            if(! name.includes(key))
+                row.style.display='none';
+            else
+                row.style.display='';
+        }
+    }
+</script>
+</html>
