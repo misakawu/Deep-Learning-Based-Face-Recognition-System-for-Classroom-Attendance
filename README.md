@@ -1,2 +1,15 @@
-# Deep-Learning-Based-Face-Recognition-System-for-Classroom-Attendance
-基于深度学习的人脸识别课堂考勤系统
+# 人脸识别课堂考勤系统
+
+## 简介
+
+本项目为一个完整的人脸识别系统，该系统提供了如下功能：
+
+1. 人脸识别
+2. 人脸特征提取
+3. 人脸对比
+
+## 环境
+
+```
+pip install -r requirements.txt
+```
